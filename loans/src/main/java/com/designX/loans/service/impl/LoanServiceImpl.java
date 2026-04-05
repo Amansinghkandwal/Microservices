@@ -91,7 +91,7 @@ public class LoanServiceImpl implements ILoanService {
 
     /**
      * @param mobileNumber
-     * @return true if deleted successfull else false
+     * @return true if deleted successfully else false
      */
     @Override
     public boolean deleteLoan(String mobileNumber) {
