@@ -1,0 +1,17 @@
+spring:
+  config:
+    on-profiles:
+      active: "qa"
+
+build:
+  version: 2.0
+
+cards:
+  message: "Welcome to designXBank cards QA service API"
+  contactDetails:
+    name: "John Doe - QA-lead"
+    email: "john@designXbank.com"
+  onCallSupport:
+    - (666) 555-1234
+    - (666) 523-1345
+
