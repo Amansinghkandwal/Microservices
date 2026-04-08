@@ -1,7 +1,3 @@
-spring:
-  config:
-    on-profiles:
-      active: "prod"
 build:
   version: "1.0"
 
