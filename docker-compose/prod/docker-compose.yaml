@@ -1,4 +1,7 @@
+version: "3.9"
+
 services:
+
   rabbit:
     image: rabbitmq:4-management
     hostname: rabbitmq
@@ -6,7 +9,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
-      test: rabbitmq-diagnostics check_port_connectivity
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -15,8 +18,13 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
+  microservicesdb:
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
   configserver:
-    image: "amansinghkandwal/configserver:v1"
+    image: amansinghkandwal/configserver:v1
     container_name: configserver-ms
     ports:
       - "8071:8071"
@@ -24,7 +32,7 @@ services:
       rabbit:
         condition: service_healthy
     healthcheck:
-      test: "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
+      test: ["CMD-SHELL", "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -34,47 +42,56 @@ services:
       service: microservice-base-config
 
   accounts:
-    image: "amansinghkandwal/accounts:v1"
+    image: amansinghkandwal/accounts:v1
     container_name: accounts-ms
     ports:
       - "8080:8080"
+    environment:
+      SPRING_APPLICATION_NAME: accounts
+      SPRING_DATASOURCE_URL: jdbc:mysql://microservicesdb:3306/accountsdb
     depends_on:
+      microservicesdb:
+        condition: service_healthy
       configserver:
         condition: service_healthy
-    environment:
-      SPRING_APPLICATION_NAME: "accounts"
     extends:
       file: common-config.yml
       service: microservice-configserver-config
 
   loans:
-    image: "amansinghkandwal/loans:v1"
+    image: amansinghkandwal/loans:v1
     container_name: loans-ms
     ports:
       - "8090:8090"
+    environment:
+      SPRING_APPLICATION_NAME: loans
+      SPRING_DATASOURCE_URL: jdbc:mysql://microservicesdb:3306/loansdb
     depends_on:
+      microservicesdb:
+        condition: service_healthy
       configserver:
         condition: service_healthy
-    environment:
-      SPRING_APPLICATION_NAME: "loans"
     extends:
       file: common-config.yml
       service: microservice-configserver-config
 
   cards:
-    image: "amansinghkandwal/cards:v1"
+    image: amansinghkandwal/cards:v1
     container_name: cards-ms
     ports:
       - "9000:9000"
+    environment:
+      SPRING_APPLICATION_NAME: cards
+      SPRING_DATASOURCE_URL: jdbc:mysql://microservicesdb:3306/cardsdb
     depends_on:
+      microservicesdb:
+        condition: service_healthy
       configserver:
         condition: service_healthy
-    environment:
-      SPRING_APPLICATION_NAME: "cards"
     extends:
       file: common-config.yml
       service: microservice-configserver-config
 
 networks:
   designXBank:
-    driver: "bridge"
+    driver: bridge

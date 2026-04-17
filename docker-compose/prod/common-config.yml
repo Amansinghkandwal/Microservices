@@ -1,7 +1,26 @@
 services:
+
   network-deploy-service:
     networks:
       - designXBank
+
+  microservice-db-config:
+    extends:
+      service: network-deploy-service
+    image: mysql:8
+    container_name: microservicesdb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+        - ./db-init:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   microservice-base-config:
     extends:
@@ -11,11 +30,13 @@ services:
         limits:
           memory: 700m
     environment:
-      SPRING_RABBITMQ_HOST: "rabbit"
+      SPRING_RABBITMQ_HOST: rabbitmq
 
   microservice-configserver-config:
     extends:
       service: microservice-base-config
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      SPRING_CONFIG_IMPORT: optional:configserver:http://configserver:8071/
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
