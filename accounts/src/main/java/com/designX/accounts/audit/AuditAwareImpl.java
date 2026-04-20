@@ -7,7 +7,6 @@ import java.util.Optional;
 
 @Component("auditawareImpl")
 public class AuditAwareImpl implements AuditorAware<String>{
-
     /**
      * Returns the current auditor of the application
      *
